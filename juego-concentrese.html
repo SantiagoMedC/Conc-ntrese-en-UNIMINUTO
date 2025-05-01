@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concéntrese: Factorización Algebraica</title>
+    <style>
+        :root {
+            --primary-color: #4a6baf;
+            --secondary-color: #f9a826;
+            --tertiary-color: #3ac7a7;
+            --background-color: #f0f5ff;
+            --card-back: #6a89cc;
+            --card-border: #3867d6;
+            --text-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' opacity='0.05' viewBox='0 0 100 100'%3E%3Ctext x='10' y='30' font-family='Arial' font-size='10' fill='%23000'%3Ex²+5x+6%3C/text%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%23000'%3E√x%3C/text%3E%3Ctext x='20' y='70' font-family='Arial' font-size='8' fill='%23000'%3Ea²-b²%3C/text%3E%3Cpath d='M80,20 L90,20 L90,25 L80,25 Z' fill='%23333'/%3E%3Ccircle cx='15' cy='85' r='5' fill='%23333'/%3E%3C/svg%3E");
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-info {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .score-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+        
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .board-container {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .message-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            font-size: 2rem;
+            text-align: center;
+            border-radius: 10px;
+        }
+        
+        .preview-message {
+            margin-bottom: 20px;
+        }
+        
+        .countdown {
+            font-size: 5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            perspective: 1000px;
+        }
+        
+        .card {
+            height: 120px;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .card-front {
+            background-color: white;
+            border: 2px solid var(--card-border);
+            color: var(--text-color);
+            font-size: 1rem;
+            transform: rotateY(180deg);
+        }
+        
+        .card-back {
+            background-color: var(--card-back);
+            background-image: linear-gradient(135deg, var(--card-back) 0%, var(--primary-color) 100%);
+            color: white;
+            border: 2px solid var(--card-border);
+        }
+        
+        .card-back::after {
+            content: "?";
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card.matched .card-front {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .restart-button {
+            margin-top: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .restart-button:hover {
+            background-color: #e59400;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .restart-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .complete-message {
+            font-size: 2rem;
+            color: var(--tertiary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .stats {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+        
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(9, 1fr);
+            }
+            
+            .card {
+                height: 100px;
+            }
+            
+            .card-front {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-board {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(13, 1fr);
+            }
+            
+            .score-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Concéntrese: Factorización Algebraica</h1>
+    
+    <div class="game-info">
+        <div class="score-container">
+            <div class="score-item">
+                <div class="score-label">Intentos</div>
+                <div class="score-value" id="attempts">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">Parejas</div>
+                <div class="score-value" id="matches">0</div>
+            </div>
+        </div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+    
+    <div class="board-container">
+        <div id="overlay" class="message-overlay">
+            <div class="preview-message">¡Memoriza las posiciones de las cartas!</div>
+            <div class="countdown" id="countdown">10</div>
+        </div>
+        <div class="game-board" id="game-board"></div>
+    </div>
+    
+    <button class="restart-button" id="restart-button">Reiniciar Juego</button>
+    
+    <script>
+        // Definir los pares de cartas (ejercicios y sus tipos de factorización)
+        const cardPairs = [
+            { exercise: "x² + 6x + 9", type: "Trinomio cuadrado perfecto" },
+            { exercise: "x² - 4", type: "Diferencia de cuadrados" },
+            { exercise: "x² - 9y²", type: "Diferencia de cuadrados" },
+            { exercise: "x² + 4x + 4", type: "Trinomio cuadrado perfecto" },
+            { exercise: "3x² - 12", type: "Factor común monomio" },
+            { exercise: "x³ + 8", type: "Suma de cubos" },
+            { exercise: "x³ - 27", type: "Diferencia de cubos" },
+            { exercise: "x² - 6x + 9", type: "Trinomio cuadrado perfecto" },
+            { exercise: "2x² + 8x + 8", type: "Factor común monomio" },
+            { exercise: "x² - 2x - 15", type: "Trinomio de la forma x² + bx + c" },
+            { exercise: "x² - 25", type: "Diferencia de cuadrados" },
+            { exercise: "x² + 10x + 25", type: "Trinomio cuadrado perfecto" },
+            { exercise: "3x³ - 24x", type: "Factor común monomio" }
+        ];
+        
+        // Elementos del DOM
+        const gameBoard = document.getElementById('game-board');
+        const overlay = document.getElementById('overlay');
+        const countdown = document.getElementById('countdown');
+        const attemptsElement = document.getElementById('attempts');
+        const matchesElement = document.getElementById('matches');
+        const timerElement = document.getElementById('timer');
+        const restartButton = document.getElementById('restart-button');
+        
+        // Variables del juego
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let attempts = 0;
+        let timer = null;
+        let seconds = 0;
+        let gameActive = false;
+        
+        // Iniciar el juego
+        function initGame() {
+            // Reiniciar variables
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            attempts = 0;
+            seconds = 0;
+            gameActive = false;
+            
+            // Actualizar pantalla
+            updateStats();
+            updateTimer();
+            
+            // Limpiar el tablero
+            gameBoard.innerHTML = '';
+            
+            // Seleccionar 12 pares aleatorios (24 cartas) + 1 carta extra
+            let selectedPairs = [...cardPairs];
+            selectedPairs.sort(() => Math.random() - 0.5);
+            selectedPairs = selectedPairs.slice(0, 12);
+            
+            // Crear array con las cartas (ejercicios y tipos)
+            let cardData = [];
+            selectedPairs.forEach(pair => {
+                cardData.push({ content: pair.exercise, type: 'exercise' });
+                cardData.push({ content: pair.type, type: 'type' });
+            });
+            
+            // Agregar una carta extra para hacer el total impar (25)
+            const extraPair = cardPairs[Math.floor(Math.random() * cardPairs.length)];
+            const extraCard = { content: extraPair.type, type: 'type' };
+            cardData.push(extraCard);
+            
+            // Mezclar las cartas
+            cardData.sort(() => Math.random() - 0.5);
+            
+            // Crear las cartas en el DOM
+            cardData.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.index = index;
+                cardElement.dataset.content = card.content;
+                cardElement.dataset.type = card.type;
+                
+                const frontFace = document.createElement('div');
+                frontFace.className = 'card-face card-front';
+                frontFace.textContent = card.content;
+                
+                const backFace = document.createElement('div');
+                backFace.className = 'card-face card-back';
+                
+                cardElement.appendChild(frontFace);
+                cardElement.appendChild(backFace);
+                
+                cardElement.addEventListener('click', flipCard);
+                
+                gameBoard.appendChild(cardElement);
+                cards.push(cardElement);
+            });
+            
+            // Durante la previsualización, queremos mostrar el contenido de las cartas (no el signo de interrogación)
+            // Para eso, necesitamos modificar el CSS aplicado temporalmente
+            overlay.style.display = 'flex';
+            let count = 10;
+            countdown.textContent = count;
+            
+            // Mostrar el contenido de todas las cartas (no volteadas pero visibles)
+            // La idea es que las cartas no estén volteadas, pero el contenido sea visible
+            cards.forEach(card => {
+                // Hacemos visible el frente de la carta durante la previsualización
+                const frontFace = card.querySelector('.card-front');
+                const backFace = card.querySelector('.card-back');
+                
+                // Temporalmente ocultamos la parte trasera y mostramos el frente
+                backFace.style.display = 'none';
+                frontFace.style.backfaceVisibility = 'visible';
+                frontFace.style.transform = 'none';
+            });
+            
+            const countdownInterval = setInterval(() => {
+                count--;
+                countdown.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    overlay.style.display = 'none';
+                    
+                    // Restablecer el estilo normal de las cartas y ocultarlas
+                    setTimeout(() => {
+                        cards.forEach(card => {
+                            const frontFace = card.querySelector('.card-front');
+                            const backFace = card.querySelector('.card-back');
+                            
+                            // Restaurar el estilo normal
+                            backFace.style.display = '';
+                            frontFace.style.backfaceVisibility = '';
+                            frontFace.style.transform = '';
+                        });
+                        
+                        gameActive = true;
+                        
+                        // Iniciar el cronómetro
+                        timer = setInterval(() => {
+                            seconds++;
+                            updateTimer();
+                        }, 1000);
+                    }, 500);
+                }
+            }, 1000);
+        }
+        
+        // Función para voltear una carta
+        function flipCard() {
+            if (!gameActive) return;
+            
+            const card = this;
+            
+            // Evitar voltear cartas ya emparejadas o la misma carta dos veces
+            if (card.classList.contains('matched') || flippedCards.includes(card)) {
+                return;
+            }
+            
+            // Voltear la carta (mostrar el contenido)
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            
+            // Si hay dos cartas volteadas, verificar si son pareja
+            if (flippedCards.length === 2) {
+                attempts++;
+                updateStats();
+                
+                const card1 = flippedCards[0];
+                const card2 = flippedCards[1];
+                
+                // Verificar si las cartas forman una pareja válida
+                const isMatch = (
+                    (card1.dataset.type === 'exercise' && card2.dataset.type === 'type') ||
+                    (card1.dataset.type === 'type' && card2.dataset.type === 'exercise')
+                ) && (
+                    // Buscar el par correspondiente en cardPairs
+                    cardPairs.some(pair => 
+                        (card1.dataset.content === pair.exercise && card2.dataset.content === pair.type) ||
+                        (card1.dataset.content === pair.type && card2.dataset.content === pair.exercise)
+                    )
+                );
+                
+                if (isMatch) {
+                    // ¡Pareja encontrada!
+                    setTimeout(() => {
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        flippedCards = [];
+                        
+                        matchedPairs++;
+                        updateStats();
+                        
+                        // Verificar si el juego ha terminado
+                        if (matchedPairs === 12) { // 12 pares completados
+                            endGame();
+                        }
+                    }, 500);
+                } else {
+                    // No es pareja, voltear de nuevo ambas cartas
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                        flippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+        
+        // Actualizar estadísticas en pantalla
+        function updateStats() {
+            attemptsElement.textContent = attempts;
+            matchesElement.textContent = matchedPairs;
+        }
+        
+        // Actualizar el cronómetro
+        function updateTimer() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Finalizar el juego
+        function endGame() {
+            gameActive = false;
+            clearInterval(timer);
+            
+            // Mostrar mensaje de victoria
+            overlay.innerHTML = `
+                <div class="complete-message">¡Felicidades!</div>
+                <div class="stats">Completaste el juego en ${attempts} intentos y ${formatTime(seconds)}</div>
+            `;
+            overlay.style.display = 'flex';
+        }
+        
+        // Formatear tiempo
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            if (minutes === 0) {
+                return `${seconds} segundos`;
+            } else if (minutes === 1) {
+                return `1 minuto y ${seconds} segundos`;
+            } else {
+                return `${minutes} minutos y ${seconds} segundos`;
+            }
+        }
+        
+        // Evento para reiniciar el juego
+        restartButton.addEventListener('click', () => {
+            clearInterval(timer);
+            initGame();
+        });
+        
+        // Iniciar el juego cuando se carga la página
+        window.addEventListener('load', initGame);
+    </script>
